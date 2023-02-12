@@ -29,3 +29,20 @@ const ast = babylon.parse(content, {
   sourceType: "module",
 })
 ```
+
+<br>
+
+### AST 파일을 Traverse해서 의존성 파악하기
+
+- AST를 순회하면서 의존성을 파악할 것이다. AST를 순회하는 방법은 여러가지가 있지만, 여기서는 babel의 traverse를 이용할 것이다. traverse는 AST를 순회하면서 원하는 노드를 찾을 수 있다. 여기서는 ImportDeclaration 노드를 찾을 것이다. ImportDeclaration 노드는 import 구문을 의미한다.
+- EcmaScript 모듈은 static하다. 이것이 의미하는 것은 변수를 import할 수 없으며, 조건부로 다른 모듈을 import할 수 없다는 것이다. 때문에 그냥 import 구문을 찾으면 바로 의존성 목록에 추가하면 된다.
+
+```js
+const dependencies = []
+
+traverse(ast, {
+  ImportDeclaration: ({ node }) => {
+    dependencies.push(node.source.value)
+  },
+})
+```

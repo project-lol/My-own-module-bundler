@@ -27,4 +27,12 @@ function createAsset(filename) {
   const ast = babylon.parse(content, {
     sourceType: "module",
   })
+
+  const dependencies = []
+
+  traverse(ast, {
+    ImportDeclaration: ({ node }) => {
+      dependencies.push(node.source.value)
+    },
+  })
 }
