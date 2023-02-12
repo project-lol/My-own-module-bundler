@@ -8,7 +8,7 @@
 
 ### 모듈 번들러의 역할
 
-- 모듈 번들러는 코드의 작은 코드를 모아 하나의 파일로 만들어주는 도구입니다. 이 작은 코드의 단위를 모듈이라고 합니다.
+- 모듈 번들러는 코드의 작은 코드를 모아 하나의 파일로 만들어주는 도구이다. 이 작은 코드의 단위를 모듈이라고 한다.
 
 <br>
 
@@ -57,4 +57,53 @@ traverse(ast, {
 const { code } = transformFromAst(ast, null, {
   presets: ["env"],
 })
+```
+
+<br>
+
+### createGraph
+
+- 이제 모든 의존성을 파악했으니, 이 의존성을 가지고 dependency graph를 만들어보자. 먼저, createGraph라는 함수를 만든다. 이 함수는 entry file을 받아서, 그 파일을 읽고, 의존성을 파악하고, 의존성을 가지고 다시 그 의존성을 파악하는 작업을 반복한다. 이렇게 만들어진 dependency graph를 리턴한다.
+
+```js
+function createGraph(entry) {
+  const mainAsset = createAsset(entry)
+  const queue = [mainAsset]
+
+  for (const asset of queue) {
+    asset.mapping = {}
+
+    const dirname = path.dirname(asset.filename)
+
+    asset.dependencies.forEach(relativePath => {
+      const absolutePath = path.join(dirname, relativePath)
+      const child = createAsset(absolutePath)
+      asset.mapping[relativePath] = child.id
+      queue.push(child)
+    })
+  }
+  return queue
+}
+```
+
+- 이렇게 만들어진 dependency graph는 아래와 같은 형태를 가진다.
+
+```js
+[
+  {
+    id: 1,
+    filename: '/Users/____/Projects/own-module-bundler/src/a.js',
+    dependencies: [ './b.js', './c.js' ],
+    code: '"use strict";\n\nvar _b = _interopRequireDefault(require("./b.js"));\n\nvar _c = _interopRequireDefault(require("./c.js"));\n\nfunction _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }\n\nconsole.log("a.js");\n(0, _b.default)();\n(0, _c.default)();',
+    mapping: { './b.js': 'b', './c.js': 'c' }
+  },
+  {
+    id: 2,
+    filename: '/Users/____/Projects/own-module-bundler/src/b.js',
+    dependencies: [ './d.js' ],
+    code: '"use strict";\n\nvar _d = _interopRequireDefault(require("./d.js"));\n\nfunction _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }\n\nconsole.log("b.js");\n(0, _d.default)();',
+    mapping: { './d.js': 'd' }
+  },
+    ...
+]
 ```
