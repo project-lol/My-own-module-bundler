@@ -46,3 +46,15 @@ traverse(ast, {
   },
 })
 ```
+
+<br>
+
+### Babel을 이용해서 코드 변환하기
+
+- 우리의 코드에는 모든 브라우저에서 지원하지 않는 코드가 존재할 수 있다. 예를 들어서 arrow function이나 class 문법이 있다. 이런 코드들은 브라우저에서 실행할 수 없기 때문에, 이런 코드들을 변환해주는 작업이 필요하다. 이런 작업을 위해서 babel을 사용할 것이다.
+
+```js
+const { code } = transformFromAst(ast, null, {
+  presets: ["env"],
+})
+```
