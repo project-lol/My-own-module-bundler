@@ -35,4 +35,26 @@ function createAsset(filename) {
       dependencies.push(node.source.value)
     },
   })
+
+  // 각각의 모듈에 고유한 식별자를 부여한다.
+  const id = ID++
+
+  /*
+    transformFromAst:
+    1. 첫번째 인자로 AST 를 받고, 두번째 인자로 변환할 코드를 받는다.
+    2. 세번째 인자로 옵션을 받는데, 이 옵션에는 presets 이라는 속성이 있다.
+    3. presets 은 변환할 코드를 어떤 방식으로 변환할지 지정하는 속성이다.
+    4. 이 속성에는 "env" 라는 속성이 있는데, 이 속성은 ES6 코드를 ES5 코드로 변환한다.
+    5. transformFromAst 는 변환된 코드를 반환한다.
+  */
+  const { code } = transformFromAst(ast, null, {
+    presets: ["env"],
+  })
+
+  return {
+    id,
+    filename,
+    dependencies,
+    code,
+  }
 }
