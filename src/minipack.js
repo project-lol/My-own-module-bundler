@@ -77,3 +77,39 @@ function createGraph(entry) {
   }
   return queue
 }
+
+//첫번째 인자로 모듈의 정보를 담은 배열을 받는다.
+function bundle(graph) {
+  let modules = ""
+
+  graph.forEach(mod => {
+    modules += `${mod.id}: [
+      function (require, module, exports) {
+        ${mod.code}
+      },
+      ${JSON.stringify(mod.mapping)},
+    ],`
+  })
+
+  const result = `
+  (function(modules) {
+    function require(id) {
+      const [fn, mapping] = modules[id];
+      function localRequire(name) {
+        return require(mapping[name]);
+      }
+      const module = { exports : {} };
+      fn(localRequire, module, module.exports);
+      return module.exports;
+    }
+    require(0);
+  })({${modules}})
+  `
+
+  return result
+}
+
+const graph = createGraph("./example/entry.js")
+const result = bundle(graph)
+
+console.log(result)
