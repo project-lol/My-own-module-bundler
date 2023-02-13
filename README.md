@@ -115,3 +115,61 @@ function createGraph(entry) {
 - 만들어진 graph를 활용해서 bundle을 만든다. 이 번들은 브라우저에서 실행될 수 있는 코드다.
 - 먼저, IIFE를 만든다. IIFE는 Immediately Invoked Function Expression의 약자로, 함수를 선언하고 바로 실행하는 것을 의미한다. 이렇게 만들어진 IIFE는 브라우저에서 바로 실행될 수 있다.
 - 그 다음, graph를 순회하면서 각각의 모듈을 require 함수로 감싸고, require 함수는 각각의 모듈을 실행시키는 역할을 한다. 그리고 각각의 모듈은 module.exports를 통해서 export한 값을 리턴한다. 그리고 그 값을 변수에 할당한다. 그리고 그 변수를 mapping에 따라서 export한다.
+- 이렇게 번들링을 해서 나온 결과물은 아래와 같다.
+
+```js
+;(function(modules) {
+  function require(id) {
+    const [fn, mapping] = modules[id]
+    function localRequire(name) {
+      return require(mapping[name])
+    }
+    const module = { exports: {} }
+    fn(localRequire, module, module.exports)
+    return module.exports
+  }
+  require(0)
+})({
+  0: [
+    function(require, module, exports) {
+      "use strict"
+
+      var _message = require("./message.js")
+
+      var _message2 = _interopRequireDefault(_message)
+
+      function _interopRequireDefault(obj) {
+        return obj && obj.__esModule ? obj : { default: obj }
+      }
+
+      console.log(_message2.default)
+    },
+    { "./message.js": 1 },
+  ],
+  1: [
+    function(require, module, exports) {
+      "use strict"
+
+      Object.defineProperty(exports, "__esModule", {
+        value: true,
+      })
+
+      var _name = require("./name.js")
+
+      exports.default = "hello " + _name.name + "!"
+    },
+    { "./name.js": 2 },
+  ],
+  2: [
+    function(require, module, exports) {
+      "use strict"
+
+      Object.defineProperty(exports, "__esModule", {
+        value: true,
+      })
+      var name = (exports.name = "world")
+    },
+    {},
+  ],
+})
+```
